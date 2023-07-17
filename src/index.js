@@ -1,5 +1,5 @@
 import axios from "axios";
-const axios = require('axios').default;
+// const axios = require('axios').default;
 import Notiflix from 'notiflix';
 
 import simplelightbox from "simplelightbox";
