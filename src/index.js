@@ -1,13 +1,9 @@
-import axios from "axios";
-// const axios = require('axios').default;
 import Notiflix from 'notiflix';
 
 import simplelightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
+import { PER_PAGE, fetchDataByQuery } from './pixabay-api';
 
-const BASE_URL = 'https://pixabay.com/api/?';
-const API_KEY = '38137461-021887730cc8bf219daec4c0b';
-const PER_PAGE = 40;
 
 const galleryRef = document.querySelector('.gallery');
 let loadMoreBtnRef = document.querySelector('.load-more');
@@ -24,43 +20,26 @@ document.querySelector('.search-form').addEventListener('submit', (evt) => {
     if (!query.trim()) {
         return
     }
-    if (!loadMoreBtnRef.hasAttribute('hidden')) {
-        loadMoreBtnRef.hidden = true;
-    }
+    loadMoreBtnRef.style.display ='none';
+
     galleryRef.innerHTML = '';
 
     fetchDataByQuery(query, page = 1)
         .then(response => {
-            console.log(response.data)
-        Notiflix.Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
-        return response.data.hits
+            Notiflix.Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
+            return response.data.hits
         })
         .then((data) => {
             createGalleryMarkup(data)
             if (data.length >= PER_PAGE) {
-                onSubmitClick()
+                showLoadBtn()
             }
-
         })
-        // .then(() => {
-        //     if (!loadMoreBtnRef) {
-        //         onSubmitClick()
-        //     }
-        // })
         .catch(error => Notiflix.Notify.failure(error.message));
 
 
 
 })
-
-
-async function fetchDataByQuery(query, page) {
-    const response = await axios.get(`${BASE_URL}key=${API_KEY}&q=${query}&page=${page}&per_page=${PER_PAGE}`);
-    if (!response.data.total) {
-        throw new Error ('Sorry, there are no images matching your search query. Please try again.')
-    }
-    return response
-    }
 
 function createGalleryMarkup(objectArr) {
     let markup = ''
@@ -95,18 +74,34 @@ function createGalleryMarkup(objectArr) {
 
 }
     
-function onSubmitClick() {
-    // const markup = '<button class="load-more" type=button>Load More</button>';
-    // document.querySelector('body').insertAdjacentHTML('beforeend', markup)
-    
+function showLoadBtn() {
+    loadMoreBtnRef.style.display ='block';
+
     loadMoreBtnRef.addEventListener('click', (evt) => {
         evt.preventDefault();
         page += 1
         fetchDataByQuery(query, page)
             .then(response => response.data.hits)
-        .then(data => createGalleryMarkup(data));
+            .then(data => {
+                if (data.length < PER_PAGE) {
+                    return Notiflix.Notify.info(`We're sorry, but you've reached the end of search results.`);
+                }
+                loadMoreBtnRef.style.display ='block';
+                createGalleryMarkup(data)
+            })
+            .then(() => {
+                    const { height: cardHeight } = galleryRef
+                    .firstElementChild.getBoundingClientRect();
+
+                    window.scrollBy({
+                    top: cardHeight * 2,
+                    behavior: "smooth",});
+            })
+            .catch(() => {
+                Notiflix.Notify.info(`We're sorry, but you've reached the end of search results.`)
+                loadMoreBtnRef.style.display ='none'
+            });
     })
-    
 }
 
 function onImageClick(evt) {
@@ -120,3 +115,4 @@ function onImageClick(evt) {
         }
     });
 }
+
