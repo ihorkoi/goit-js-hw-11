@@ -84,9 +84,10 @@ function showLoadBtn() {
             .then(response => response.data.hits)
             .then(data => {
                 if (data.length < PER_PAGE) {
+                    loadMoreBtnRef.style.display ='none';
                     return Notiflix.Notify.info(`We're sorry, but you've reached the end of search results.`);
+                    
                 }
-                loadMoreBtnRef.style.display ='block';
                 createGalleryMarkup(data)
             })
             .then(() => {
