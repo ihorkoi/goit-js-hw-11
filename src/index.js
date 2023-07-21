@@ -79,16 +79,18 @@ function showLoadBtn() {
 
     loadMoreBtnRef.addEventListener('click', (evt) => {
         evt.preventDefault();
+        loadMoreBtnRef.style.display ='none';
         page += 1
         fetchDataByQuery(query, page)
             .then(response => response.data.hits)
             .then(data => {
                 if (data.length < PER_PAGE) {
-                    loadMoreBtnRef.style.display ='none';
                     return Notiflix.Notify.info(`We're sorry, but you've reached the end of search results.`);
                     
                 }
                 createGalleryMarkup(data)
+                loadMoreBtnRef.style.display ='block';
+
             })
             .then(() => {
                     const { height: cardHeight } = galleryRef
